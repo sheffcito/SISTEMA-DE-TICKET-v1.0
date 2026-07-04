@@ -1,0 +1,11 @@
+En bash puedes clonar este repositorio utilizando esto: git clone [https://github.com/TU_USUARIO/TU_REPOSITORIO.git](https://github.com/TU_USUARIO/TU_REPOSITORIO.git)
+cd "SISTEMA DE TICKET"
+
+debes tener python y flask instalado, si no lo tienes usa esto: pip install flask flask-sqlalchemy flask-login
+
+y utiliza este comando para ejecutar.
+python app.py
+
+
+esta es la version 1.0.
+proximo a mejoras.
