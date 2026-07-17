@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Panel Control de Tickets</h1>
+</div>
+
+{# CONTENEDOR PRINCIPAL: Tabla responsiva para listar las incidencias #}
+<div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Título</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prioridad</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {# BUCLE: Itera sobre la lista de tickets que envía el backend desde app.py #}
+            {% for ticket in tickets %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{{ ticket.id }}</td>
+                
+                {# NUEVO EN V2.0: Enlace dinámico usando la ID del ticket para ir al detalle #}
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                    <a href="/ticket/{{ ticket.id }}" class="text-blue-600 hover:underline">
+                        {{ ticket.titulo }}
+                    </a>
+                </td>
+                
+                {# Etiquetas de Prioridad con colores condicionales según la gravedad #}
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        {% if ticket.prioridad == 'Alta' or ticket.prioridad == 'Critica' %} bg-red-100 text-red-800 
+                        {% elif ticket.prioridad == 'Media' %} bg-yellow-100 text-yellow-800 
+                        {% else %} bg-green-100 text-green-800 {% endif %}">
+                        {{ ticket.prioridad }}
+                    </span>
+                </td>
+                
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span class="font-medium text-blue-600">{{ ticket.estado }}</span>
+                </td>
+                
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ ticket.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}
+                </td>
+            </tr>
+            {% else %}
+            {# Muestra este bloque únicamente si la consulta a la base de datos no arroja registros #}
+            <tr>
+                <td colspan="5" class="px-6 py-10 text-center text-sm text-gray-500">
+                    No hay tickets registrados aún. Haz clic en "Nuevo Ticket" para agregar uno.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

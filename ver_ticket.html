@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex justify-between items-center">
+        <a href="/" class="text-blue-600 hover:underline">&larr; Volver al Panel</a>
+        <span class="text-sm text-gray-500">Creado el {{ ticket.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</span>
+    </div>
+
+    {# BLOQUE 1: Información del Ticket #}
+    <div class="bg-white p-6 rounded-lg shadow-md border-t-4 {% if ticket.prioridad == 'Alta' or ticket.prioridad == 'Critica' %}border-red-500{% else %}border-blue-500{% endif %}">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ ticket.titulo }}</h1>
+                <p class="text-sm text-gray-600 mt-1">Por: <strong>{{ ticket.creador.nombre }}</strong></p>
+            </div>
+            <div class="flex space-x-2">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-gray-200 text-gray-800">{{ ticket.prioridad }}</span>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">{{ ticket.estado }}</span>
+            </div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded border text-gray-700 whitespace-pre-line">
+            {{ ticket.descripcion }}
+        </div>
+        <p class="text-xs text-gray-500 mt-3">Técnico Asignado: 
+            <strong>{% if ticket.id_asignado %}{{ ticket.tecnico.nombre }}{% else %}Ninguno todavía{% endif %}</strong>
+        </p>
+    </div>
+
+    {# BLOQUE 2: Panel de Acciones (Solo visible para Soporte y Admin) #}
+    {% if current_user.rol in ['Soporte', 'Admin'] %}
+    <div class="bg-yellow-50 p-6 rounded-lg shadow-md border border-yellow-200 flex flex-wrap gap-4 items-center justify-between">
+        <div class="text-sm text-yellow-800 font-medium">Panel de Acciones Técnicas:</div>
+        <div class="flex items-center gap-4">
+            {# Si el ticket no tiene técnico, muestra el botón para autoasignarse #}
+            {% if not ticket.id_asignado %}
+            <form action="/ticket/{{ ticket.id }}/gestionar" method="POST">
+                <input type="hidden" name="accion" value="asignar_me">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-semibold transition">Asignármelo</button>
+            </form>
+            {% endif %}
+            
+            {# Formulario para cambiar el estado de la incidencia #}
+            <form action="/ticket/{{ ticket.id }}/gestionar" method="POST" class="flex gap-2">
+                <select name="estado" class="p-2 border rounded bg-white text-sm">
+                    <option value="Abierto" {% if ticket.estado == 'Abierto' %}selected{% endif %}>Abierto</option>
+                    <option value="En Progreso" {% if ticket.estado == 'En Progreso' %}selected{% endif %}>En Progreso</option>
+                    <option value="Resuelto" {% if ticket.estado == 'Resuelto' %}selected{% endif %}>Resuelto</option>
+                    <option value="Cerrado" {% if ticket.estado == 'Cerrado' %}selected{% endif %}>Cerrado</option>
+                </select>
+                <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded text-sm font-semibold transition">Actualizar Estado</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    {# BLOQUE 3: Historial de Comentarios #}
+    <div class="space-y-4">
+        <h3 class="text-lg font-bold text-gray-800">Historial y Respuestas</h3>
+        
+        <div class="space-y-3">
+            {# Itera sobre los comentarios asociados a este ticket específico #}
+            {% for comentario in ticket.comentarios %}
+            <div class="bg-white p-4 rounded-lg shadow-sm border {% if comentario.autor.rol in ['Soporte', 'Admin'] %}border-l-4 border-l-green-500{% endif %}">
+                <div class="flex justify-between text-xs text-gray-500 mb-1">
+                    <span><strong>{{ comentario.autor.nombre }}</strong> ({{ comentario.autor.rol }})</span>
+                    <span>{{ comentario.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</span>
+                </div>
+                <p class="text-gray-700 text-sm">{{ comentario.texto }}</p>
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 italic">No hay mensajes en este ticket todavía.</p>
+            {% endfor %}
+        </div>
+
+        {# Formulario para añadir una nueva respuesta al hilo #}
+        <form action="/ticket/{{ ticket.id }}/comentar" method="POST" class="mt-4">
+            <textarea name="texto" rows="3" placeholder="Escribe una respuesta o actualización..." required 
+                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-sm"></textarea>
+            <button type="submit" class="mt-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded text-sm font-semibold transition shadow">
+                Enviar Mensaje
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
